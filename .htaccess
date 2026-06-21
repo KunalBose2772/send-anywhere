@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Prevent direct access to .php files in URL (optional, enforces clean URLs)
+# If a client requests /file-transfer.php directly, redirect them to /file-transfer
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.php\ HTTP [NC]
+RewriteRule ^([^.]+)\.php$ /$1 [R=301,L]
+
+# Internal Rewrite: Check if the file name with .php exists, and route to it internally
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_ROOT}/$1.php -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
