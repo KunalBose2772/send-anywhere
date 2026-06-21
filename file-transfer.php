@@ -48,6 +48,26 @@ require_once __DIR__ . '/db.php';
         </ul>
     </header>
 
+    <!-- Quick P2P Transfer Bar -->
+    <div class="quick-transfer-bar">
+        <div class="quick-transfer-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill: var(--primary-purple)">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            Quick P2P Transfer:
+        </div>
+        <div>
+            <button class="quick-send-btn" onclick="document.getElementById('quick-file-input').click()">
+                📁 Choose File to Send
+            </button>
+            <input type="file" id="quick-file-input" style="display: none;">
+        </div>
+        <div class="quick-receive-group">
+            <input type="text" class="quick-receive-input" id="quick-receive-key" maxlength="6" placeholder="6-digit Key">
+            <button class="quick-receive-btn" id="btn-quick-receive">Receive</button>
+        </div>
+    </div>
+
     <!-- Subpage Main Content Area -->
     <section class="seo-section" style="padding-top: 50px;">
         <div class="seo-card">
@@ -124,10 +144,38 @@ require_once __DIR__ . '/db.php';
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; <?php echo date('Y'); ?> <a href="index.php">sendanywhere.in</a>. All rights reserved. Peer-to-Peer file transfers powered by WebRTC.</p>
-    </footer>
+    <!-- P2P Transfer Progress Modal -->
+    <div class="transfer-modal" id="transfer-modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modal-close">&times;</span>
+            <div class="modal-body">
+                <h3 id="modal-title" style="margin-bottom: 15px; color: var(--primary-purple);">File Transfer</h3>
+                
+                <!-- Sender View -->
+                <div id="modal-sender-view" style="display: none;">
+                    <p>Share this 6-digit key with the receiver:</p>
+                    <div class="pin-display" id="modal-pin-code" style="font-size: 36px; margin: 10px 0;">000 000</div>
+                    <div class="countdown" id="modal-sender-status">Waiting for receiver to connect...</div>
+                </div>
+
+                <!-- Receiver View -->
+                <div id="modal-receiver-view" style="display: none;">
+                    <p id="modal-receiver-status">Connecting to sender...</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="modal-progress-container" style="display: none; margin-top: 20px;">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="modal-progress-bar"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span id="modal-percentage">0%</span>
+                        <span id="modal-speed">0 KB/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // FAQ Accordions Toggle
@@ -137,6 +185,395 @@ require_once __DIR__ . '/db.php';
                 item.classList.toggle('active');
             });
         });
+
+        // WebRTC Signaling & transfer client
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        let localConnection = null;
+        let dataChannel = null;
+        let transferId = null;
+        let pollInterval = null;
+        let selectedFile = null;
+        const CHUNK_SIZE = 16384;
+
+        // UI Selectors
+        const modal = document.getElementById('transfer-modal');
+        const modalClose = document.getElementById('modal-close');
+        const modalTitle = document.getElementById('modal-title');
+        const modalSenderView = document.getElementById('modal-sender-view');
+        const modalReceiverView = document.getElementById('modal-receiver-view');
+        const modalPinCode = document.getElementById('modal-pin-code');
+        const modalSenderStatus = document.getElementById('modal-sender-status');
+        const modalReceiverStatus = document.getElementById('modal-receiver-status');
+        const modalProgressContainer = document.getElementById('modal-progress-container');
+        const modalProgressBar = document.getElementById('modal-progress-bar');
+        const modalPercentage = document.getElementById('modal-percentage');
+        const modalSpeed = document.getElementById('modal-speed');
+
+        const quickFileInput = document.getElementById('quick-file-input');
+        const quickReceiveKey = document.getElementById('quick-receive-key');
+        const btnQuickReceive = document.getElementById('btn-quick-receive');
+
+        // Close Modal
+        modalClose.addEventListener('click', () => {
+            closeTransferSession();
+        });
+
+        function closeTransferSession() {
+            modal.style.display = 'none';
+            if (pollInterval) clearInterval(pollInterval);
+            if (dataChannel) dataChannel.close();
+            if (localConnection) localConnection.close();
+            resetWidgetUI();
+        }
+
+        function resetWidgetUI() {
+            selectedFile = null;
+            quickFileInput.value = '';
+            quickReceiveKey.value = '';
+            modalProgressContainer.style.display = 'none';
+            modalSenderView.style.display = 'none';
+            modalReceiverView.style.display = 'none';
+        }
+
+        // --- SENDER ---
+        quickFileInput.addEventListener('change', async (e) => {
+            if (quickFileInput.files.length === 0) return;
+            selectedFile = quickFileInput.files[0];
+
+            modalTitle.textContent = "Sending File";
+            modalSenderView.style.display = 'block';
+            modalReceiverView.style.display = 'none';
+            modalProgressContainer.style.display = 'none';
+            modal.style.display = 'flex';
+
+            try {
+                localConnection = new RTCPeerConnection(rtcConfig);
+                dataChannel = localConnection.createDataChannel('fileTransfer', { ordered: true });
+                
+                dataChannel.onopen = () => {
+                    modalSenderStatus.style.display = 'none';
+                    modalProgressContainer.style.display = 'block';
+                    sendFileData(dataChannel);
+                };
+
+                localConnection.onicecandidate = async (event) => {
+                    if (event.candidate && transferId) {
+                        await sendIceCandidate(transferId, 1, event.candidate);
+                    }
+                };
+
+                const offer = await localConnection.createOffer();
+                await localConnection.setLocalDescription(offer);
+
+                const response = await fetch('api/create.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ offer: offer.sdp })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    transferId = data.transfer_id;
+                    modalPinCode.textContent = formatPin(data.pin);
+                    startAnswerPolling();
+                } else {
+                    alert('Error creating transfer session: ' + data.error);
+                    closeTransferSession();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Initialization error.');
+                closeTransferSession();
+            }
+        });
+
+        function startAnswerPolling() {
+            let attempts = 0;
+            pollInterval = setInterval(async () => {
+                attempts++;
+                if (attempts > 300) {
+                    clearInterval(pollInterval);
+                    alert('Session expired.');
+                    closeTransferSession();
+                    return;
+                }
+
+                const response = await fetch('api/get_answer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transfer_id: transferId })
+                });
+                const data = await response.json();
+
+                if (data.success && data.answer) {
+                    clearInterval(pollInterval);
+                    await localConnection.setRemoteDescription(
+                        new RTCSessionDescription({ type: 'answer', sdp: data.answer })
+                    );
+                    startIcePolling(transferId, 0);
+                }
+            }, 2000);
+        }
+
+        async function sendFileData(channel) {
+            channel.send(JSON.stringify({
+                type: 'metadata',
+                name: selectedFile.name,
+                size: selectedFile.size,
+                mime: selectedFile.type
+            }));
+
+            const reader = new FileReader();
+            let offset = 0;
+            let startTime = Date.now();
+
+            const readSlice = (o) => {
+                const slice = selectedFile.slice(o, o + CHUNK_SIZE);
+                reader.readAsArrayBuffer(slice);
+            };
+
+            reader.onload = (e) => {
+                const buffer = e.target.result;
+                if (channel.bufferedAmount > 1048576) {
+                    channel.onbufferedamountlow = () => {
+                        channel.onbufferedamountlow = null;
+                        channel.send(buffer);
+                        offset += buffer.byteLength;
+                        updateProgress(offset);
+                    };
+                } else {
+                    channel.send(buffer);
+                    offset += buffer.byteLength;
+                    updateProgress(offset);
+                }
+            };
+
+            function updateProgress(bytesSent) {
+                const pct = Math.round((bytesSent / selectedFile.size) * 100);
+                modalProgressBar.style.width = `${pct}%`;
+                modalPercentage.textContent = `${pct}%`;
+                
+                const timeElapsed = (Date.now() - startTime) / 1000;
+                const speedBytes = bytesSent / timeElapsed;
+                modalSpeed.textContent = `${formatSpeed(speedBytes)}`;
+
+                if (bytesSent < selectedFile.size) {
+                    readSlice(offset);
+                } else {
+                    modalSpeed.textContent = 'Transfer Complete!';
+                }
+            }
+
+            readSlice(offset);
+        }
+
+        // --- RECEIVER ---
+        btnQuickReceive.addEventListener('click', async () => {
+            const pinVal = quickReceiveKey.value.replace(/\s+/g, '');
+            if (pinVal.length !== 6 || isNaN(pinVal)) {
+                alert('Please enter a valid 6-digit key.');
+                return;
+            }
+
+            modalTitle.textContent = "Receiving File";
+            modalSenderView.style.display = 'none';
+            modalReceiverView.style.display = 'block';
+            modalReceiverStatus.textContent = "Connecting to sender...";
+            modalProgressContainer.style.display = 'none';
+            modal.style.display = 'flex';
+
+            try {
+                const joinResp = await fetch('api/join.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin: pinVal })
+                });
+                const joinData = await joinResp.json();
+
+                if (!joinData.success) {
+                    alert(joinData.error);
+                    closeTransferSession();
+                    return;
+                }
+
+                transferId = joinData.transfer_id;
+                localConnection = new RTCPeerConnection(rtcConfig);
+
+                localConnection.onicecandidate = async (event) => {
+                    if (event.candidate && transferId) {
+                        await sendIceCandidate(transferId, 0, event.candidate);
+                    }
+                };
+
+                localConnection.ondatachannel = (event) => {
+                    setupReceiverChannelEvents(event.channel);
+                };
+
+                await localConnection.setRemoteDescription(
+                    new RTCSessionDescription({ type: 'offer', sdp: joinData.offer })
+                );
+
+                const answer = await localConnection.createAnswer();
+                await localConnection.setLocalDescription(answer);
+
+                const ansResp = await fetch('api/answer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transfer_id: transferId, answer: answer.sdp })
+                });
+                const ansData = await ansResp.json();
+
+                if (ansData.success) {
+                    startIcePolling(transferId, 1);
+                } else {
+                    alert('Signaling error: ' + ansData.error);
+                    closeTransferSession();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection failure.');
+                closeTransferSession();
+            }
+        });
+
+        function setupReceiverChannelEvents(channel) {
+            let receivedChunks = [];
+            let fileMetadata = null;
+            let bytesReceived = 0;
+            let startTime = null;
+
+            channel.onopen = () => {
+                modalReceiverStatus.textContent = 'Connected! Transfer starting...';
+                modalProgressContainer.style.display = 'block';
+                startTime = Date.now();
+            };
+
+            channel.onmessage = (event) => {
+                if (typeof event.data === 'string') {
+                    fileMetadata = JSON.parse(event.data);
+                    modalReceiverStatus.textContent = `Receiving: ${escapeHtml(fileMetadata.name)}`;
+                    receivedChunks = [];
+                    bytesReceived = 0;
+                } else {
+                    receivedChunks.push(event.data);
+                    bytesReceived += event.data.byteLength;
+
+                    if (fileMetadata) {
+                        const pct = Math.round((bytesReceived / fileMetadata.size) * 100);
+                        modalProgressBar.style.width = `${pct}%`;
+                        modalPercentage.textContent = `${pct}%`;
+
+                        const timeElapsed = (Date.now() - startTime) / 1000;
+                        const speedBytes = bytesReceived / timeElapsed;
+                        modalSpeed.textContent = `${formatSpeed(speedBytes)}`;
+
+                        if (bytesReceived === fileMetadata.size) {
+                            modalReceiverStatus.textContent = 'Saving file...';
+                            
+                            const blob = new Blob(receivedChunks, { type: fileMetadata.mime || 'application/octet-stream' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileMetadata.name;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            
+                            modalSpeed.textContent = 'Download completed successfully!';
+                            channel.close();
+                            localConnection.close();
+                        }
+                    }
+                }
+            };
+        }
+
+        // --- UTILS ---
+        async function sendIceCandidate(transferId, sender, candidate) {
+            await fetch('api/candidate.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'send',
+                    transfer_id: transferId,
+                    sender: sender,
+                    candidate: candidate
+                })
+            });
+        }
+
+        function startIcePolling(transferId, targetSender) {
+            const addedCandidateIds = new Set();
+            const iceInterval = setInterval(async () => {
+                if (!localConnection || localConnection.signalingState === 'closed') {
+                    clearInterval(iceInterval);
+                    return;
+                }
+                try {
+                    const response = await fetch('api/candidate.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'get',
+                            transfer_id: transferId,
+                            sender: targetSender
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (data.success && data.candidates) {
+                        for (let item of data.candidates) {
+                            if (!addedCandidateIds.has(item.id)) {
+                                addedCandidateIds.add(item.id);
+                                if (item.candidate) {
+                                    await localConnection.addIceCandidate(new RTCIceCandidate(item.candidate));
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }, 2000);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatSpeed(bytesPerSec) {
+            if (bytesPerSec === 0 || isNaN(bytesPerSec)) return '0 KB/s';
+            const k = 1024;
+            const speedKB = bytesPerSec / k;
+            if (speedKB < 1024) {
+                return speedKB.toFixed(1) + ' KB/s';
+            }
+            return (speedKB / k).toFixed(1) + ' MB/s';
+        }
+
+        function formatPin(pin) {
+            const pinStr = String(pin);
+            return pinStr.substring(0, 3) + ' ' + pinStr.substring(3);
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
