@@ -2,9 +2,9 @@
 // db.php - Database connection setup
 
 $db_host = 'localhost';
-$db_name = 'sendanywhere_db';
-$db_user = 'root';
-$db_pass = '';
+$db_name = 'u827121208_sendanywhere';
+$db_user = 'u827121208_sendanywhere';
+$db_pass = 'Sendanywhere45';
 
 try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [
