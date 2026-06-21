@@ -119,7 +119,7 @@ header {
     transition: var(--transition-smooth);
 }
 
-.card h2 {
+.card h2, .card-title {
     font-size: 22px;
     font-weight: 700;
     margin-bottom: 20px;

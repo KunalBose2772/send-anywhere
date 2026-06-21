@@ -9,6 +9,7 @@ require_once __DIR__ . '/db.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send Anywhere - Fast, Secure & Free P2P File Transfer Online</title>
     <meta name="description" content="Use Send Anywhere to transfer large files directly from device to device without storing them on any server. Free, unlimited, and fully end-to-end encrypted.">
+    <meta name="keywords" content="send anywhere, send anywhere online, file transfer, share files, file share online, send anywhere pc, peer to peer file transfer, p2p file sharing, free file sharing, we transfer, share large files">
     <link rel="canonical" href="https://send-anywhere.in/" />
     
     <!-- Open Graph / Facebook -->
@@ -101,7 +102,7 @@ require_once __DIR__ . '/db.php';
                 
                 <!-- Send Card -->
                 <div class="card" id="send-card">
-                    <h2>Send</h2>
+                    <div class="card-title">Send</div>
                     
                     <!-- File drop zone -->
                     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
@@ -137,7 +138,7 @@ require_once __DIR__ . '/db.php';
 
                 <!-- Receive Card -->
                 <div class="card" id="receive-card">
-                    <h2>Receive</h2>
+                    <div class="card-title">Receive</div>
                     <div class="input-group" id="receiver-input-group">
                         <input type="text" class="input-key" id="receive-key" maxlength="6" placeholder="Input 6-digit key" autocomplete="off">
                         <button class="btn-receive" id="btn-receive" title="Download">
@@ -183,7 +184,7 @@ require_once __DIR__ . '/db.php';
     <section class="seo-section" id="how-it-works">
         <div class="seo-card">
             
-            <h1>Send Anywhere: Fast, Secure & Free P2P File Transfer Online</h1>
+            <h2>Send Anywhere: Fast, Secure & Free P2P File Transfer Online</h2>
             <p>Welcome to <strong>Send Anywhere</strong>, the premier online platform designed for transferring files directly between devices in real-time. Whether you need to share a massive 50GB video file, project folders, documents, or photos, our direct transport system enables high-speed transfers without limits. Traditional cloud storage services require uploading files to a remote server first, which compromises privacy, consumes storage quotas, and takes twice as long. Send Anywhere bypasses the middleman, creating a secure, direct path from sender to receiver.</p>
 
             <h2>How It Works: Real-Time Peer-to-Peer File Sharing</h2>
