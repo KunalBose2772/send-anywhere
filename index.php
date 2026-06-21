@@ -7,9 +7,73 @@ require_once __DIR__ . '/db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Anywhere P2P - Fast, Secure & Free File Transfer Online</title>
-    <meta name="description" content="Send Anywhere P2P allows you to transfer large files directly from device to device without storing them on any server. Free, unlimited, and fully end-to-end encrypted.">
+    <title>Send Anywhere - Fast, Secure & Free P2P File Transfer Online</title>
+    <meta name="description" content="Use Send Anywhere to transfer large files directly from device to device without storing them on any server. Free, unlimited, and fully end-to-end encrypted.">
+    <link rel="canonical" href="https://send-anywhere.in/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://send-anywhere.in/">
+    <meta property="og:title" content="Send Anywhere - Fast, Secure & Free P2P File Transfer Online">
+    <meta property="og:description" content="Use Send Anywhere to transfer large files directly from device to device without storing them on any server. Free, unlimited, and fully end-to-end encrypted.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://send-anywhere.in/">
+    <meta property="twitter:title" content="Send Anywhere - Fast, Secure & Free P2P File Transfer Online">
+    <meta property="twitter:description" content="Use Send Anywhere to transfer large files directly from device to device without storing them on any server. Free, unlimited, and fully end-to-end encrypted.">
+    
     <link rel="stylesheet" href="style.css">
+    
+    <!-- FAQ Schema Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is it safe to transfer files with Send Anywhere?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, it is completely secure. The connection uses WebRTC data channels, which are encrypted end-to-end using DTLS and SRTP. Because files are streamed directly between browsers, no file data is ever stored on our server, eliminating any risk of cloud data breaches."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the maximum file size limit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "There is no file size limit! Since files stream directly device-to-device and are not held on a server, we do not impose artificial limits. You can send files of 1GB, 10GB, 50GB, or more as long as both devices have stable internet connections."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to install an app or register an account?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No installation or account registration is required. The entire file transfer process runs natively inside your web browser on desktop, laptop, mobile, or tablet devices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do both devices need to be online at the same time?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Because Send Anywhere is a direct device-to-device transfer, both the sender and receiver must keep their web browsers open and connected to the page until the file transfer reaches 100%."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does the 6-digit key remain active?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The generated 6-digit key remains active for exactly 10 minutes. If the receiver does not input the PIN and establish a connection within this window, the session will automatically expire for security, and a new key must be generated."
+          }
+        }
+      ]
+    }
+    </script>
 </head>
 <body>
 
@@ -100,11 +164,10 @@ require_once __DIR__ . '/db.php';
                 
             </div>
 
-            <!-- Right: Captivating Copy and Graphic Mockups -->
             <div class="hero-content">
                 <div class="hero-tag">⚡ Direct Device-to-Device Transfer</div>
-                <h1>Want to send large files <span>instantly</span> without upload limits?</h1>
-                <p>Send Anywhere P2P establishes a direct, secure tunnel between devices. Your files never pass through or rest on our servers. Enjoy absolute privacy, maximum network speeds, and zero storage limits.</p>
+                <h1>Send Anywhere: Send Large Files Instantly Without Upload Limits</h1>
+                <p>Send Anywhere establishes a direct, secure tunnel between devices. Your files never pass through or rest on our servers. Enjoy absolute privacy, maximum network speeds, and zero storage limits.</p>
                 
                 <div class="mockup-illustrations">
                     <div class="mockup-badge">📁 Any File Format</div>
@@ -120,14 +183,14 @@ require_once __DIR__ . '/db.php';
     <section class="seo-section" id="how-it-works">
         <div class="seo-card">
             
-            <h1>Send Anywhere P2P: Fast, Secure & Free File Transfer Online</h1>
-            <p>Welcome to <strong>Send Anywhere P2P</strong>, the premier online platform designed for transferring files directly between devices in real-time. Whether you need to share a massive 50GB video file, project folders, documents, or photos, our direct transport system enables high-speed transfers without limits. Traditional cloud storage services require uploading files to a remote server first, which compromises privacy, consumes storage quotas, and takes twice as long. Send Anywhere P2P bypasses the middleman, creating a secure, direct path from sender to receiver.</p>
+            <h1>Send Anywhere: Fast, Secure & Free P2P File Transfer Online</h1>
+            <p>Welcome to <strong>Send Anywhere</strong>, the premier online platform designed for transferring files directly between devices in real-time. Whether you need to share a massive 50GB video file, project folders, documents, or photos, our direct transport system enables high-speed transfers without limits. Traditional cloud storage services require uploading files to a remote server first, which compromises privacy, consumes storage quotas, and takes twice as long. Send Anywhere bypasses the middleman, creating a secure, direct path from sender to receiver.</p>
 
             <h2>How It Works: Real-Time Peer-to-Peer File Sharing</h2>
-            <p>Our service utilizes cutting-edge web technologies to achieve true serverless file sharing. When you select a file, the platform generates a unique, single-use 6-digit key. Once the receiver inputs this key, a handshake is negotiated via our lightweight signaling server. After the handshake, the signaling server drops out completely, and a direct WebRTC connection is opened between the two browsers. The file data is streamed locally from one machine to another. Your data is never saved on any hosting drive, meaning your server remains empty and your private information is never compromised.</p>
+            <p>Our service utilizes cutting-edge web technologies to achieve true serverless file sharing. When you select a file, the platform generates a unique, single-use 6-digit key. Once the receiver inputs this key, a handshake is negotiated via our lightweight signaling server. After the handshake, the signaling server drops out completely, and a direct WebRTC connection is opened between the two browsers. The file data is streamed locally from one machine to another. Your data is never saved on any hosting drive, meaning your server remains empty and your private information is never compromised when you send anywhere.</p>
 
             <h3>Step-by-Step Guide to Send and Receive Files</h3>
-            <p>Getting started with Send Anywhere P2P is incredibly simple and requires no software installation or user registration:</p>
+            <p>Getting started with Send Anywhere is incredibly simple and requires no software installation or user registration:</p>
             <ul>
                 <li><strong>Step 1: Choose Your File</strong> - Click on the "+" icon inside the Send Card or drag-and-drop the file you wish to send. The file details will display instantly.</li>
                 <li><strong>Step 2: Generate the Transfer PIN</strong> - Click the "Send File" button. Our system will generate a temporary 6-digit pin. Keep this page open.</li>
@@ -136,7 +199,7 @@ require_once __DIR__ . '/db.php';
             </ul>
 
             <h2 id="technology">The Technical Powerhouse: WebRTC Data Channels</h2>
-            <p>At the core of Send Anywhere P2P is WebRTC (Web Real-Time Communication), an open-source standard supported by major browsers like Google Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge. WebRTC is designed to facilitate voice, video, and raw data transmission directly between peer browsers. By leveraging WebRTC's <code>RTCDataChannel</code>, our web application reads files locally, breaks them down into binary chunks, and streams them securely across the network. Because WebRTC features built-in DTLS (Datagram Transport Layer Security) and SRTP (Secure Real-time Transport Protocol), every single byte sent is encrypted end-to-end. Eavesdropping by third parties, ISPs, or hackers is mathematically impossible.</p>
+            <p>At the core of Send Anywhere is WebRTC (Web Real-Time Communication), an open-source standard supported by major browsers like Google Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge. WebRTC is designed to facilitate voice, video, and raw data transmission directly between peer browsers. By leveraging WebRTC's <code>RTCDataChannel</code>, our web application reads files locally, breaks them down into binary chunks, and streams them securely across the network. Because WebRTC features built-in DTLS (Datagram Transport Layer Security) and SRTP (Secure Real-time Transport Protocol), every single byte sent is encrypted end-to-end. Eavesdropping by third parties, ISPs, or hackers is mathematically impossible.</p>
 
             <h3>Why Direct Device-to-Device Sharing is Superior</h3>
             <p>Most file-sharing websites (like WeTransfer or Dropbox) act as intermediate staging zones. You upload your file to their server, they save it, and then send a download link to your recipient. This standard system poses several disadvantages:</p>
@@ -147,13 +210,13 @@ require_once __DIR__ . '/db.php';
             </ul>
 
             <h2>Comparison: P2P vs. Traditional Cloud and Web Uploads</h2>
-            <p>Below is a comparative breakdown showing why peer-to-peer file sharing via Send Anywhere P2P is the superior option for quick, secure digital assets transport:</p>
+            <p>Below is a comparative breakdown showing why peer-to-peer file sharing via Send Anywhere is the superior option for quick, secure digital assets transport:</p>
 
             <table style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 15px; text-align: left;">
                 <thead>
                     <tr style="background-color: var(--primary-purple); color: var(--text-white); border-bottom: 2px solid rgba(0,0,0,0.1)">
                         <th style="padding: 12px 15px;">Feature</th>
-                        <th style="padding: 12px 15px;">Send Anywhere P2P</th>
+                        <th style="padding: 12px 15px;">Send Anywhere</th>
                         <th style="padding: 12px 15px;">Cloud Storage (Drive/Dropbox)</th>
                         <th style="padding: 12px 15px;">Traditional Web Upload</th>
                     </tr>
@@ -190,7 +253,7 @@ require_once __DIR__ . '/db.php';
             <div class="faq-container">
                 
                 <div class="faq-item">
-                    <div class="faq-question">Is it safe to transfer files with Send Anywhere P2P?</div>
+                    <div class="faq-question">Is it safe to transfer files with Send Anywhere?</div>
                     <div class="faq-answer">
                         Yes, it is completely secure. The connection uses WebRTC data channels, which are encrypted end-to-end using DTLS and SRTP. Because files are streamed directly between browsers, no file data is ever stored on our server, eliminating any risk of cloud data breaches.
                     </div>
@@ -213,7 +276,7 @@ require_once __DIR__ . '/db.php';
                 <div class="faq-item">
                     <div class="faq-question">Do both devices need to be online at the same time?</div>
                     <div class="faq-answer">
-                        Yes. Because Send Anywhere P2P is a direct device-to-device transfer, both the sender and receiver must keep their web browsers open and connected to the page until the file transfer reaches 100%.
+                        Yes. Because Send Anywhere is a direct device-to-device transfer, both the sender and receiver must keep their web browsers open and connected to the page until the file transfer reaches 100%.
                     </div>
                 </div>
 
